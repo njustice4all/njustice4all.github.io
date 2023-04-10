@@ -1,0 +1,49 @@
+---
+template: blog-post
+slug: /react-native-large-image
+date: 2013-04-10 09:00
+title: react native 2000px이상 이미지 처리
+featuredImage: /assets/images/posts/190208/docker.png
+description: react-native 안드로이드에서 길이가 긴 이미지를 처리할때 리사이징된다
+---
+
+쇼핑몰에서 상품 상세페이지를 볼때 길이가 긴 이미지를 가지고 있는 컴포넌트가 있다고 가정해보자.
+
+react-native 안드로이드에서 길이가 긴 이미지를 처리할때 퀄리티가 줄어드는 이슈가있기 때문에 (iOS는 발생하지 않음)
+<a href="https://github.com/facebook/fresco/issues/2397" target="_blank">fresco issue</a>
+
+일반적인 이미지컴포넌트를 사용하면, react native에서 해당이미지의 퀄리티를 강제로 줄여버린다.
+
+```typescript
+<Image source={{ uri: "very long remote image" }} />
+```
+
+따라서 굉장히 긴 이미지를 remote에서 가져올때는 다른 방법으로 해야함. 웹뷰가 출동하면 어떨까?
+
+```typescript
+<WebView
+  ...
+  source={{
+    uri: imageUri({ uri: "very long remote image" }),
+  }}
+/>
+```
+
+이젠 아예 에뮬레이터가 먹통이 되어버렸다
+<a href="https://github.com/react-native-webview/react-native-webview/issues/811" target="_blank">Android is crashing when "WebView" is wrapped by "View"</a>
+
+```typescript
+<WebView
+  ...
+  androidHardwareAccelerationDisabled
+  source={{
+    uri: imageUri({ uri: "very long remote image" }),
+  }}
+  style={{ opacity: 0.99, flex: 1, overflow: 'hidden' }}
+/>
+```
+
+github issue에서 참고한 해결방법으로 스타일과 `androidHardwareAccelerationDisabled`옵션을 사용해줬다
+
+react native 정말 신난다
+
