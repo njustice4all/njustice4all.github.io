@@ -1,0 +1,50 @@
+<!DOCTYPE html><html lang="en" class="dark"><head><meta charSet="utf-8"/><title>I WANT TO BELIEVE</title><meta name="viewport" content="width=device-width,initial-scale=1"/><link rel="stylesheet" href="/build/_assets/tailwind-4O66H3A3.css"/><link rel="stylesheet" href="/build/_assets/github-dark-dimmed-RCH63F7F.css"/></head><body class="bg-background text-text-primary dark:bg-d-background dark:text-d-text-primary"><div class="flex min-h-screen flex-col"><header class="sticky top-0 z-[1] mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between bg-background p-8 font-sans font-bold uppercase text-text-primary backdrop-blur-[100px] dark:border-gray-800 dark:bg-d-background dark:text-d-text-primary"><a class="inline-block text-lg" href="/">I WANT TO BELIEVE</a><nav class="flex flex-[1] items-center justify-end overflow-hidden"><div class="hidden justify-end md:flex"><a class="navlink" href="/">Home</a><a aria-current="page" class="selected navlink" href="/blog">Blog</a><a class="navlink" href="/project">Project</a><a class="navlink" href="https://career.programmers.co.kr/pr/urdlove_160" target="_blank">Resume</a></div><div class="flex w-[75px] justify-end md:hidden"><button><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu"><line x1="4" y1="12" x2="20" y2="12"></line><line x1="4" y1="6" x2="20" y2="6"></line><line x1="4" y1="18" x2="20" y2="18"></line></svg></button></div></nav></header><main class="relative mx-auto my-0 box-border flex w-full max-w-7xl flex-[1] flex-grow flex-col px-[2em] py-[1em]"><div><div class="mx-auto flex w-full max-w-[47rem]"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg> <a aria-current="page" class="back-button ml-2 font-sans active" href="/blog">Back</a></div><header class="mx-auto flex w-full max-w-[47rem] text-center text-primary"><h1 class="mb-10 mt-16 text-4xl font-bold leading-[1.3]">react native에서 긴 이미지 처리</h1></header><div class="flex justify-center"><div class="prose w-screen px-[2em] py-[1em] dark:prose-invert md:prose-lg lg:prose-xl prose-headings:text-text-primary prose-a:no-underline prose-pre:p-0 dark:prose-headings:text-d-text-primary"><p>쇼핑몰에서 상품 상세페이지를 볼때 길이가 긴 이미지를 가지고 있는 컴포넌트가 있다고 가정해보자.</p>
+<p>react-native 안드로이드에서 길이가 긴 이미지를 처리할때 퀄리티가 줄어드는 이슈가있기 때문에 (iOS는 발생하지 않음)
+<a href="https://github.com/facebook/fresco/issues/2397" target="_blank">fresco issue</a></p>
+<p>일반적인 이미지컴포넌트를 사용하면, react native에서 해당이미지의 퀄리티를 강제로 줄여버린다.</p>
+<pre><code class="hljs language-typescript">&lt;<span class="hljs-title class_">Image</span> source={{ <span class="hljs-attr">uri</span>: <span class="hljs-string">&quot;very long remote image&quot;</span> }} /&gt;
+</code></pre>
+<p>따라서 굉장히 긴 이미지를 remote에서 가져올때는 다른 방법으로 해야함. 웹뷰가 출동하면 어떨까?</p>
+<pre><code class="hljs language-typescript">&lt;<span class="hljs-title class_">WebView</span>
+  ...
+  source={{
+    <span class="hljs-attr">uri</span>: <span class="hljs-title function_">imageUri</span>({ <span class="hljs-attr">uri</span>: <span class="hljs-string">&quot;very long remote image&quot;</span> }),
+  }}
+/&gt;
+</code></pre>
+<p>이젠 아예 에뮬레이터가 먹통이 되어버렸다
+<a href="https://github.com/react-native-webview/react-native-webview/issues/811" target="_blank">Android is crashing when &quot;WebView&quot; is wrapped by &quot;View&quot;</a></p>
+<pre><code class="hljs language-typescript">&lt;<span class="hljs-title class_">WebView</span>
+  ...
+  androidHardwareAccelerationDisabled
+  source={{
+    <span class="hljs-attr">uri</span>: <span class="hljs-title function_">imageUri</span>({ <span class="hljs-attr">uri</span>: <span class="hljs-string">&quot;very long remote image&quot;</span> }),
+  }}
+  style={{ <span class="hljs-attr">opacity</span>: <span class="hljs-number">0.99</span>, <span class="hljs-attr">flex</span>: <span class="hljs-number">1</span>, <span class="hljs-attr">overflow</span>: <span class="hljs-string">&#x27;hidden&#x27;</span> }}
+/&gt;
+</code></pre>
+<p>github issue에서 참고한 해결방법으로 스타일과 <code>androidHardwareAccelerationDisabled</code>옵션을 사용해줬다</p>
+<p>react native 정말 신난다</p></div></div></div></main><footer class="mx-auto my-4 w-full max-w-7xl px-8 py-4 text-center text-[0.8rem] text-text-secondary dark:text-d-text-secondary"><span>Powered by<!-- --> <a href="https://remix.run/" target="_blank" rel="noopener noreferrer">Remix</a>.</span></footer></div><script>((STORAGE_KEY, restoreKey) => {
+    if (!window.history.state || !window.history.state.key) {
+      let key = Math.random().toString(32).slice(2);
+      window.history.replaceState({
+        key
+      }, "");
+    }
+    try {
+      let positions = JSON.parse(sessionStorage.getItem(STORAGE_KEY) || "{}");
+      let storedY = positions[restoreKey || window.history.state.key];
+      if (typeof storedY === "number") {
+        window.scrollTo(0, storedY);
+      }
+    } catch (error) {
+      console.error(error);
+      sessionStorage.removeItem(STORAGE_KEY);
+    }
+  })("positions", null)</script><link rel="modulepreload" href="/build/manifest-6C81B7CD.js"/><link rel="modulepreload" href="/build/entry.client-W37XRZTG.js"/><link rel="modulepreload" href="/build/_shared/chunk-XLQRNDYL.js"/><link rel="modulepreload" href="/build/_shared/chunk-J2B6VFGD.js"/><link rel="modulepreload" href="/build/_shared/chunk-EGLYY6PQ.js"/><link rel="modulepreload" href="/build/_shared/chunk-B4IYY2WK.js"/><link rel="modulepreload" href="/build/root-NDEPYIZP.js"/><link rel="modulepreload" href="/build/_shared/chunk-BIZO7NA5.js"/><link rel="modulepreload" href="/build/routes/_mdx-A5W4UHPY.js"/><link rel="modulepreload" href="/build/routes/_mdx.blog.react-native-large-image-5AYVH4BS.js"/><script>window.__remixContext = {"state":{"loaderData":{"routes/_mdx":{"slug":"react-native-large-image","title":"react native에서 긴 이미지 처리","publishDate":"2023-04-10","description":"react native 안드로이드에서 길이가 긴 이미지를 처리할때 리사이징된다","pathName":"/blog/react-native-large-image"},"root":null,"routes/_mdx.blog.react-native-large-image":null},"actionData":null,"errors":null},"future":{"unstable_cssModules":false,"unstable_cssSideEffectImports":false,"unstable_dev":false,"unstable_postcss":false,"unstable_tailwind":true,"unstable_vanillaExtract":false,"v2_errorBoundary":false,"v2_meta":false,"v2_normalizeFormMethod":false,"v2_routeConvention":true}};</script><script type="module" async="">import "/build/manifest-6C81B7CD.js";
+import * as route0 from "/build/root-NDEPYIZP.js";
+import * as route1 from "/build/routes/_mdx-A5W4UHPY.js";
+import * as route2 from "/build/routes/_mdx.blog.react-native-large-image-5AYVH4BS.js";
+window.__remixRouteModules = {"root":route0,"routes/_mdx":route1,"routes/_mdx.blog.react-native-large-image":route2};
+
+import("/build/entry.client-W37XRZTG.js");</script></body></html>

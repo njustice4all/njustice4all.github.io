@@ -1,0 +1,77 @@
+<!DOCTYPE html><html lang="en" class="dark"><head><meta charSet="utf-8"/><title>I WANT TO BELIEVE</title><meta name="viewport" content="width=device-width,initial-scale=1"/><link rel="stylesheet" href="/build/_assets/tailwind-4O66H3A3.css"/><link rel="stylesheet" href="/build/_assets/github-dark-dimmed-RCH63F7F.css"/></head><body class="bg-background text-text-primary dark:bg-d-background dark:text-d-text-primary"><div class="flex min-h-screen flex-col"><header class="sticky top-0 z-[1] mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between bg-background p-8 font-sans font-bold uppercase text-text-primary backdrop-blur-[100px] dark:border-gray-800 dark:bg-d-background dark:text-d-text-primary"><a class="inline-block text-lg" href="/">I WANT TO BELIEVE</a><nav class="flex flex-[1] items-center justify-end overflow-hidden"><div class="hidden justify-end md:flex"><a class="navlink" href="/">Home</a><a aria-current="page" class="selected navlink" href="/blog">Blog</a><a class="navlink" href="/project">Project</a><a class="navlink" href="https://career.programmers.co.kr/pr/urdlove_160" target="_blank">Resume</a></div><div class="flex w-[75px] justify-end md:hidden"><button><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu"><line x1="4" y1="12" x2="20" y2="12"></line><line x1="4" y1="6" x2="20" y2="6"></line><line x1="4" y1="18" x2="20" y2="18"></line></svg></button></div></nav></header><main class="relative mx-auto my-0 box-border flex w-full max-w-7xl flex-[1] flex-grow flex-col px-[2em] py-[1em]"><div><div class="mx-auto flex w-full max-w-[47rem]"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg> <a aria-current="page" class="back-button ml-2 font-sans active" href="/blog">Back</a></div><header class="mx-auto flex w-full max-w-[47rem] text-center text-primary"><h1 class="mb-10 mt-16 text-4xl font-bold leading-[1.3]">[NODE] NODE+EXPRESS+MONGODB 회원가입 FLOW #3</h1></header><div class="flex justify-center"><div class="prose w-screen px-[2em] py-[1em] dark:prose-invert md:prose-lg lg:prose-xl prose-headings:text-text-primary prose-a:no-underline prose-pre:p-0 dark:prose-headings:text-d-text-primary"><p>회원가입까지 잘 끝냈으면 마지막은 로그인이다. 로그인은 이미 대부분 필요한건 끝내놨기 때문에 별거 없다. 로그인 라우터부터 작성해보자.</p>
+<h3>라우터</h3>
+<pre><code class="hljs language-javascript">routes.<span class="hljs-title function_">post</span>(<span class="hljs-string">&#x27;/login&#x27;</span>, authLocal, userController.<span class="hljs-property">login</span>);
+</code></pre>
+<p><code>/login</code>은 <code>authLocal</code>미들웨어를 거친 후 응답을 한다.</p>
+<hr/>
+<h3>미들웨어</h3>
+<pre><code class="hljs language-javascript"><span class="hljs-keyword">const</span> localOptions = {
+  <span class="hljs-attr">usernameField</span>: <span class="hljs-string">&#x27;email&#x27;</span>,
+};
+
+<span class="hljs-keyword">const</span> localStrategy = <span class="hljs-keyword">new</span> <span class="hljs-title class_">LocalStrategy</span>(localOptions, <span class="hljs-keyword">async</span> (email, password, done) =&gt; {
+  <span class="hljs-keyword">try</span> {
+    <span class="hljs-keyword">const</span> user = <span class="hljs-keyword">await</span> <span class="hljs-title class_">User</span>.<span class="hljs-title function_">findOne</span>({ email });
+
+    <span class="hljs-keyword">if</span> (!user) {
+      <span class="hljs-keyword">return</span> <span class="hljs-title function_">done</span>(<span class="hljs-literal">null</span>, <span class="hljs-literal">false</span>);
+    }
+
+    <span class="hljs-keyword">if</span> (!user.<span class="hljs-title function_">_compareUser</span>(password)) {
+      <span class="hljs-keyword">return</span> <span class="hljs-title function_">done</span>(<span class="hljs-literal">null</span>, <span class="hljs-literal">false</span>);
+    }
+
+    <span class="hljs-keyword">if</span> (!user.<span class="hljs-property">isVerified</span>) {
+      <span class="hljs-keyword">return</span> <span class="hljs-title function_">done</span>(<span class="hljs-literal">null</span>, <span class="hljs-literal">false</span>);
+    }
+
+    <span class="hljs-keyword">return</span> <span class="hljs-title function_">done</span>(<span class="hljs-literal">null</span>, user);
+  } <span class="hljs-keyword">catch</span> (error) {
+    <span class="hljs-keyword">return</span> <span class="hljs-title function_">done</span>(error, <span class="hljs-literal">false</span>);
+  }
+});
+
+passport.<span class="hljs-title function_">use</span>(localStrategy);
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">const</span> authLocal = passport.<span class="hljs-title function_">authenticate</span>(<span class="hljs-string">&#x27;local&#x27;</span>, { <span class="hljs-attr">session</span>: <span class="hljs-literal">false</span> });
+</code></pre>
+<p>로그인 유저네임필드를 <code>email</code>로 옵션설정하고 유저객체를 가져와서 검증하는 미들웨어작성.</p>
+<ul>
+<li>유저가 없으면 실패</li>
+<li>비밀번호가 다르면 실패</li>
+<li><code>isVerified</code>가 <code>false</code>면 실패 (이메일 인증에서 true로 바꿔줌)</li>
+<li>다 통과하면 성공</li>
+</ul>
+<hr/>
+<h3>컨트롤러</h3>
+<pre><code class="hljs language-javascript"><span class="hljs-keyword">export</span> <span class="hljs-keyword">const</span> <span class="hljs-title function_">login</span> = <span class="hljs-keyword">async</span> (<span class="hljs-params">req, res</span>) =&gt; {
+  <span class="hljs-keyword">return</span> res.<span class="hljs-title function_">status</span>(<span class="hljs-number">200</span>).<span class="hljs-title function_">json</span>(req.<span class="hljs-property">user</span>.<span class="hljs-title function_">toAuthJSON</span>());
+};
+</code></pre>
+<p>미들웨어에서 검증하는단계를 거치고 성공하면 <code>user</code>객체를 리턴해줬기때문에 <code>req.user</code>로 접근가능하다. <code>toAuthJSON</code>은 모델에서 이미 만들어놓은 함수</p>
+<hr/>
+<h3>실행과 결과</h3>
+<p><img src="/assets/images/posts/190128/results1.png" alt="result1"/></p></div></div></div></main><footer class="mx-auto my-4 w-full max-w-7xl px-8 py-4 text-center text-[0.8rem] text-text-secondary dark:text-d-text-secondary"><span>Powered by<!-- --> <a href="https://remix.run/" target="_blank" rel="noopener noreferrer">Remix</a>.</span></footer></div><script>((STORAGE_KEY, restoreKey) => {
+    if (!window.history.state || !window.history.state.key) {
+      let key = Math.random().toString(32).slice(2);
+      window.history.replaceState({
+        key
+      }, "");
+    }
+    try {
+      let positions = JSON.parse(sessionStorage.getItem(STORAGE_KEY) || "{}");
+      let storedY = positions[restoreKey || window.history.state.key];
+      if (typeof storedY === "number") {
+        window.scrollTo(0, storedY);
+      }
+    } catch (error) {
+      console.error(error);
+      sessionStorage.removeItem(STORAGE_KEY);
+    }
+  })("positions", null)</script><link rel="modulepreload" href="/build/manifest-6C81B7CD.js"/><link rel="modulepreload" href="/build/entry.client-W37XRZTG.js"/><link rel="modulepreload" href="/build/_shared/chunk-XLQRNDYL.js"/><link rel="modulepreload" href="/build/_shared/chunk-J2B6VFGD.js"/><link rel="modulepreload" href="/build/_shared/chunk-EGLYY6PQ.js"/><link rel="modulepreload" href="/build/_shared/chunk-B4IYY2WK.js"/><link rel="modulepreload" href="/build/root-NDEPYIZP.js"/><link rel="modulepreload" href="/build/_shared/chunk-BIZO7NA5.js"/><link rel="modulepreload" href="/build/routes/_mdx-A5W4UHPY.js"/><link rel="modulepreload" href="/build/routes/_mdx.blog.node-express-mongodb-flow-3-4HNJB3ZV.js"/><script>window.__remixContext = {"state":{"loaderData":{"routes/_mdx":{"slug":"node-express-mongodb-flow-3","title":"[NODE] NODE+EXPRESS+MONGODB 회원가입 FLOW #3","publishDate":"2019-01-24","description":"많이쓰는 node express mongodb 조합으로 회원가입과 github인증등을 구현. 첫번째로는 프로젝트의 구조등을 설정함.","pathName":"/blog/node-express-mongodb-flow-3"},"root":null,"routes/_mdx.blog.node-express-mongodb-flow-3":null},"actionData":null,"errors":null},"future":{"unstable_cssModules":false,"unstable_cssSideEffectImports":false,"unstable_dev":false,"unstable_postcss":false,"unstable_tailwind":true,"unstable_vanillaExtract":false,"v2_errorBoundary":false,"v2_meta":false,"v2_normalizeFormMethod":false,"v2_routeConvention":true}};</script><script type="module" async="">import "/build/manifest-6C81B7CD.js";
+import * as route0 from "/build/root-NDEPYIZP.js";
+import * as route1 from "/build/routes/_mdx-A5W4UHPY.js";
+import * as route2 from "/build/routes/_mdx.blog.node-express-mongodb-flow-3-4HNJB3ZV.js";
+window.__remixRouteModules = {"root":route0,"routes/_mdx":route1,"routes/_mdx.blog.node-express-mongodb-flow-3":route2};
+
+import("/build/entry.client-W37XRZTG.js");</script></body></html>

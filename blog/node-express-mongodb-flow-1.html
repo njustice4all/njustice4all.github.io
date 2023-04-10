@@ -1,0 +1,193 @@
+<!DOCTYPE html><html lang="en" class="dark"><head><meta charSet="utf-8"/><title>I WANT TO BELIEVE</title><meta name="viewport" content="width=device-width,initial-scale=1"/><link rel="stylesheet" href="/build/_assets/tailwind-4O66H3A3.css"/><link rel="stylesheet" href="/build/_assets/github-dark-dimmed-RCH63F7F.css"/></head><body class="bg-background text-text-primary dark:bg-d-background dark:text-d-text-primary"><div class="flex min-h-screen flex-col"><header class="sticky top-0 z-[1] mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between bg-background p-8 font-sans font-bold uppercase text-text-primary backdrop-blur-[100px] dark:border-gray-800 dark:bg-d-background dark:text-d-text-primary"><a class="inline-block text-lg" href="/">I WANT TO BELIEVE</a><nav class="flex flex-[1] items-center justify-end overflow-hidden"><div class="hidden justify-end md:flex"><a class="navlink" href="/">Home</a><a aria-current="page" class="selected navlink" href="/blog">Blog</a><a class="navlink" href="/project">Project</a><a class="navlink" href="https://career.programmers.co.kr/pr/urdlove_160" target="_blank">Resume</a></div><div class="flex w-[75px] justify-end md:hidden"><button><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu"><line x1="4" y1="12" x2="20" y2="12"></line><line x1="4" y1="6" x2="20" y2="6"></line><line x1="4" y1="18" x2="20" y2="18"></line></svg></button></div></nav></header><main class="relative mx-auto my-0 box-border flex w-full max-w-7xl flex-[1] flex-grow flex-col px-[2em] py-[1em]"><div><div class="mx-auto flex w-full max-w-[47rem]"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg> <a aria-current="page" class="back-button ml-2 font-sans active" href="/blog">Back</a></div><header class="mx-auto flex w-full max-w-[47rem] text-center text-primary"><h1 class="mb-10 mt-16 text-4xl font-bold leading-[1.3]">[NODE] NODE+EXPRESS+MONGODB 회원가입 FLOW #1</h1></header><div class="flex justify-center"><div class="prose w-screen px-[2em] py-[1em] dark:prose-invert md:prose-lg lg:prose-xl prose-headings:text-text-primary prose-a:no-underline prose-pre:p-0 dark:prose-headings:text-d-text-primary"><p>많이쓰는 node express mongodb 조합으로 회원가입과 github인증등을 구현. 첫번째로는 프로젝트의 구조등을 설정함.</p>
+<h3>구조</h3>
+<p><img src="/assets/images/posts/structure.png" alt="기본구조"/></p>
+<p>위 구조에서 지금 당장은 models폴더가 필요하지 않다.</p>
+<hr/>
+<h3>필요한 패키지 설치</h3>
+<p><code>yarn add express mongoose dotenv</code></p>
+<blockquote>
+<p>필요에따라 webpack과 nodemon도 global설치하자</p>
+</blockquote>
+<hr/>
+<h3>webpack.config.js 설정</h3>
+<pre><code class="hljs language-javascript"><span class="hljs-keyword">const</span> path = <span class="hljs-built_in">require</span>(<span class="hljs-string">&#x27;path&#x27;</span>);
+<span class="hljs-keyword">const</span> nodeExternals = <span class="hljs-built_in">require</span>(<span class="hljs-string">&#x27;webpack-node-externals&#x27;</span>);
+
+<span class="hljs-variable language_">module</span>.<span class="hljs-property">exports</span> = {
+  <span class="hljs-attr">entry</span>: {
+    <span class="hljs-attr">index</span>: <span class="hljs-string">&#x27;./src/index.js&#x27;</span>,
+  },
+  <span class="hljs-attr">output</span>: {
+    <span class="hljs-attr">path</span>: path.<span class="hljs-title function_">join</span>(__dirname, <span class="hljs-string">&#x27;dist&#x27;</span>),
+    <span class="hljs-attr">publicPath</span>: <span class="hljs-string">&#x27;/&#x27;</span>,
+    <span class="hljs-attr">filename</span>: <span class="hljs-string">&#x27;[name].bundle.js&#x27;</span>,
+  },
+  <span class="hljs-attr">target</span>: <span class="hljs-string">&#x27;node&#x27;</span>,
+  <span class="hljs-attr">externals</span>: [<span class="hljs-title function_">nodeExternals</span>()], <span class="hljs-comment">// Need this to avoid error when working with Express</span>
+  <span class="hljs-attr">module</span>: {
+    <span class="hljs-attr">rules</span>: [
+      {
+        <span class="hljs-comment">// Transpiles ES6-8 into ES5</span>
+        <span class="hljs-attr">test</span>: <span class="hljs-regexp">/\.js$/</span>,
+        <span class="hljs-attr">exclude</span>: <span class="hljs-regexp">/node_modules/</span>,
+        <span class="hljs-attr">use</span>: {
+          <span class="hljs-attr">loader</span>: <span class="hljs-string">&#x27;babel-loader&#x27;</span>,
+        },
+      },
+    ],
+  },
+};
+</code></pre>
+<hr/>
+<h3>앱의 진입점을 src/index.js로 했으니 작성</h3>
+<pre><code class="hljs language-javascript"><span class="hljs-keyword">import</span> express <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;express&#x27;</span>;
+
+<span class="hljs-keyword">import</span> <span class="hljs-string">&#x27;./config/db&#x27;</span>;
+
+<span class="hljs-keyword">import</span> constants <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;./config/constants&#x27;</span>;
+<span class="hljs-keyword">import</span> middlewares <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;./middlewares&#x27;</span>;
+<span class="hljs-keyword">import</span> appRoutes <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;./modules&#x27;</span>;
+
+<span class="hljs-keyword">const</span> app = <span class="hljs-title function_">express</span>();
+
+<span class="hljs-title function_">middlewares</span>(app);
+<span class="hljs-title function_">appRoutes</span>(app);
+
+app.<span class="hljs-title function_">get</span>(<span class="hljs-string">&#x27;/&#x27;</span>, <span class="hljs-function">(<span class="hljs-params">req, res</span>) =&gt;</span> {
+  <span class="hljs-keyword">return</span> res.<span class="hljs-title function_">status</span>(<span class="hljs-number">200</span>).<span class="hljs-title function_">json</span>({ <span class="hljs-attr">hey</span>: <span class="hljs-string">&#x27;man&#x27;</span> });
+});
+
+app.<span class="hljs-title function_">listen</span>(constants.<span class="hljs-property">PORT</span>, <span class="hljs-function">(<span class="hljs-params">err</span>) =&gt;</span> {
+  <span class="hljs-keyword">if</span> (err) {
+    <span class="hljs-keyword">throw</span> err;
+  }
+
+  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`server is running on port <span class="hljs-subst">${constants.PORT}</span>`</span>);
+  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`running environment is <span class="hljs-subst">${process.env.NODE_ENV}</span>`</span>);
+});
+</code></pre>
+<hr/>
+<p><code>config</code>폴더내의 <code>db.js</code>와 <code>constants.js</code>가 필요하니까 작성해야한다. db는 mongoose를 사용해서 mongodb를 구동하고 constants는 mongodb와 api에 사용하는 상수들을 객체로 가져온다</p>
+<h3>index에서 필요한 config폴더의 db.js와 constants.js작성</h3>
+<pre><code class="hljs language-javascript"><span class="hljs-keyword">import</span> mongoose <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;mongoose&#x27;</span>;
+
+<span class="hljs-keyword">import</span> constants <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;./constants&#x27;</span>;
+
+<span class="hljs-keyword">if</span> (process.<span class="hljs-property">env</span>.<span class="hljs-property">NODE_ENV</span> !== <span class="hljs-string">&#x27;production&#x27;</span>) {
+  mongoose.<span class="hljs-title function_">set</span>(<span class="hljs-string">&#x27;debug&#x27;</span>, <span class="hljs-literal">true</span>);
+}
+
+<span class="hljs-keyword">const</span> options = {
+  <span class="hljs-attr">useNewUrlParser</span>: <span class="hljs-literal">true</span>,
+  <span class="hljs-attr">useCreateIndex</span>: <span class="hljs-literal">true</span>,
+  <span class="hljs-attr">dbName</span>: constants.<span class="hljs-property">DB_NAME</span>,
+  <span class="hljs-attr">autoReconnect</span>: <span class="hljs-literal">true</span>,
+  <span class="hljs-attr">reconnectTries</span>: <span class="hljs-number">30</span>,
+};
+
+mongoose
+  .<span class="hljs-title function_">connect</span>(constants.<span class="hljs-property">DB_URL</span>, options)
+  .<span class="hljs-title function_">then</span>(<span class="hljs-function">() =&gt;</span> <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">&#x27;mongoDB is running...&#x27;</span>))
+  .<span class="hljs-title function_">catch</span>(<span class="hljs-function">(<span class="hljs-params">err</span>) =&gt;</span> <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">error</span>(err));
+</code></pre>
+<pre><code class="hljs language-javascript"><span class="hljs-keyword">import</span> dotenv <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;dotenv&#x27;</span>;
+
+dotenv.<span class="hljs-title function_">config</span>();
+
+<span class="hljs-keyword">const</span> config = {
+  <span class="hljs-attr">development</span>: {
+    <span class="hljs-attr">DB_URL</span>: process.<span class="hljs-property">env</span>.<span class="hljs-property">DB_URL</span>,
+    <span class="hljs-attr">DB_NAME</span>: <span class="hljs-string">&#x27;newbie-dev&#x27;</span>,
+    <span class="hljs-attr">JWT_SECRET</span>: process.<span class="hljs-property">env</span>.<span class="hljs-property">JWT_SECRET</span>,
+  },
+  <span class="hljs-attr">production</span>: {
+    <span class="hljs-attr">DB_URL</span>: process.<span class="hljs-property">env</span>.<span class="hljs-property">DB_URL</span>,
+    <span class="hljs-attr">DB_NAME</span>: <span class="hljs-string">&#x27;newbie-prod&#x27;</span>,
+    <span class="hljs-attr">JWT_SECRET</span>: process.<span class="hljs-property">env</span>.<span class="hljs-property">JWT_SECRET</span>,
+  },
+  <span class="hljs-attr">test</span>: {
+    <span class="hljs-attr">DB_URL</span>: process.<span class="hljs-property">env</span>.<span class="hljs-property">DB_URL</span>,
+    <span class="hljs-attr">DB_NAME</span>: <span class="hljs-string">&#x27;newbie-test&#x27;</span>,
+    <span class="hljs-attr">JWT_SECRET</span>: process.<span class="hljs-property">env</span>.<span class="hljs-property">JWT_SECRET</span>,
+  },
+};
+
+<span class="hljs-keyword">const</span> <span class="hljs-title function_">getConfig</span> = (<span class="hljs-params">env</span>) =&gt; config[env];
+
+<span class="hljs-keyword">const</span> defaultConfig = {
+  <span class="hljs-attr">PORT</span>: process.<span class="hljs-property">env</span>.<span class="hljs-property">PORT</span>,
+};
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> {
+  ...defaultConfig,
+  ...<span class="hljs-title function_">getConfig</span>(process.<span class="hljs-property">env</span>.<span class="hljs-property">NODE_ENV</span>),
+};
+</code></pre>
+<hr/>
+<h3>미들웨어구현</h3>
+<pre><code class="hljs language-javascript"><span class="hljs-keyword">import</span> express <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;express&#x27;</span>;
+<span class="hljs-keyword">import</span> morgan <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;morgan&#x27;</span>;
+<span class="hljs-keyword">import</span> compression <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;compression&#x27;</span>;
+<span class="hljs-keyword">import</span> helmet <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;helmet&#x27;</span>;
+<span class="hljs-keyword">import</span> passport <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;passport&#x27;</span>;
+<span class="hljs-keyword">import</span> redis <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;redis&#x27;</span>;
+<span class="hljs-keyword">import</span> cors <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;cors&#x27;</span>;
+
+<span class="hljs-keyword">const</span> isDev = process.<span class="hljs-property">env</span>.<span class="hljs-property">NODE_ENV</span> === <span class="hljs-string">&#x27;development&#x27;</span>;
+<span class="hljs-keyword">const</span> isProd = process.<span class="hljs-property">env</span>.<span class="hljs-property">NODE_ENV</span> === <span class="hljs-string">&#x27;production&#x27;</span>;
+<span class="hljs-keyword">const</span> client = redis.<span class="hljs-title function_">createClient</span>(<span class="hljs-number">6379</span>, <span class="hljs-string">&#x27;127.0.0.1&#x27;</span>);
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> (app) =&gt; {
+  <span class="hljs-keyword">if</span> (isProd) {
+    app.<span class="hljs-title function_">use</span>(<span class="hljs-title function_">compression</span>());
+    app.<span class="hljs-title function_">use</span>(<span class="hljs-title function_">helmet</span>());
+  }
+
+  app.<span class="hljs-title function_">use</span>(<span class="hljs-title function_">cors</span>());
+
+  app.<span class="hljs-title function_">use</span>(express.<span class="hljs-title function_">json</span>());
+
+  app.<span class="hljs-title function_">use</span>(passport.<span class="hljs-title function_">initialize</span>());
+
+  app.<span class="hljs-title function_">use</span>(<span class="hljs-function">(<span class="hljs-params">req, res, next</span>) =&gt;</span> {
+    req.<span class="hljs-property">cache</span> = client;
+    <span class="hljs-title function_">next</span>();
+  });
+
+  <span class="hljs-keyword">if</span> (isDev) {
+    app.<span class="hljs-title function_">use</span>(<span class="hljs-title function_">morgan</span>(<span class="hljs-string">&#x27;dev&#x27;</span>));
+  }
+};
+</code></pre>
+<blockquote>
+<p>패키지 설치한게 많은데 필요없는건 설치 안해도된다. 그리고 앱 루트폴더에 <code>.env</code>파일을 만들어 적절하게 필요한 값을 입력한다.</p>
+</blockquote>
+<hr/>
+<h3>실행과 결과</h3>
+<p>이제 앱에서 지금은 필요없는 <code>appRoutes(app);</code>같은것들을 주석으로 막고 실행해보면 실행이 된다. 빌드하기위해선 콘솔에서 <code>webpack -w --mode development</code>. 실행은 <code>nodemon ./dist/index.bundle.js</code>하면 되는데 계속 이렇게 할 순 없으니 <code>package.json</code>파일에서 적절하게 스크립트를 작성하고 실행하면 아래와같이 나와야한다.</p>
+<p><img src="/assets/images/posts/results1.png" alt="결과1"/></p>
+<p><img src="/assets/images/posts/results2.png" alt="결과2"/></p>
+<p><strong>continue...</strong></p></div></div></div></main><footer class="mx-auto my-4 w-full max-w-7xl px-8 py-4 text-center text-[0.8rem] text-text-secondary dark:text-d-text-secondary"><span>Powered by<!-- --> <a href="https://remix.run/" target="_blank" rel="noopener noreferrer">Remix</a>.</span></footer></div><script>((STORAGE_KEY, restoreKey) => {
+    if (!window.history.state || !window.history.state.key) {
+      let key = Math.random().toString(32).slice(2);
+      window.history.replaceState({
+        key
+      }, "");
+    }
+    try {
+      let positions = JSON.parse(sessionStorage.getItem(STORAGE_KEY) || "{}");
+      let storedY = positions[restoreKey || window.history.state.key];
+      if (typeof storedY === "number") {
+        window.scrollTo(0, storedY);
+      }
+    } catch (error) {
+      console.error(error);
+      sessionStorage.removeItem(STORAGE_KEY);
+    }
+  })("positions", null)</script><link rel="modulepreload" href="/build/manifest-6C81B7CD.js"/><link rel="modulepreload" href="/build/entry.client-W37XRZTG.js"/><link rel="modulepreload" href="/build/_shared/chunk-XLQRNDYL.js"/><link rel="modulepreload" href="/build/_shared/chunk-J2B6VFGD.js"/><link rel="modulepreload" href="/build/_shared/chunk-EGLYY6PQ.js"/><link rel="modulepreload" href="/build/_shared/chunk-B4IYY2WK.js"/><link rel="modulepreload" href="/build/root-NDEPYIZP.js"/><link rel="modulepreload" href="/build/_shared/chunk-BIZO7NA5.js"/><link rel="modulepreload" href="/build/routes/_mdx-A5W4UHPY.js"/><link rel="modulepreload" href="/build/routes/_mdx.blog.node-express-mongodb-flow-1-3LKBO4MO.js"/><script>window.__remixContext = {"state":{"loaderData":{"routes/_mdx":{"slug":"node-express-mongodb-flow-1","title":"[NODE] NODE+EXPRESS+MONGODB 회원가입 FLOW #1","publishDate":"2019-01-22","description":"많이쓰는 node express mongodb 조합으로 회원가입과 github인증등을 구현. 첫번째로는 프로젝트의 구조등을 설정함.","pathName":"/blog/node-express-mongodb-flow-1"},"root":null,"routes/_mdx.blog.node-express-mongodb-flow-1":null},"actionData":null,"errors":null},"future":{"unstable_cssModules":false,"unstable_cssSideEffectImports":false,"unstable_dev":false,"unstable_postcss":false,"unstable_tailwind":true,"unstable_vanillaExtract":false,"v2_errorBoundary":false,"v2_meta":false,"v2_normalizeFormMethod":false,"v2_routeConvention":true}};</script><script type="module" async="">import "/build/manifest-6C81B7CD.js";
+import * as route0 from "/build/root-NDEPYIZP.js";
+import * as route1 from "/build/routes/_mdx-A5W4UHPY.js";
+import * as route2 from "/build/routes/_mdx.blog.node-express-mongodb-flow-1-3LKBO4MO.js";
+window.__remixRouteModules = {"root":route0,"routes/_mdx":route1,"routes/_mdx.blog.node-express-mongodb-flow-1":route2};
+
+import("/build/entry.client-W37XRZTG.js");</script></body></html>

@@ -1,0 +1,238 @@
+<!DOCTYPE html><html lang="en" class="dark"><head><meta charSet="utf-8"/><title>I WANT TO BELIEVE</title><meta name="viewport" content="width=device-width,initial-scale=1"/><link rel="stylesheet" href="/build/_assets/tailwind-4O66H3A3.css"/><link rel="stylesheet" href="/build/_assets/github-dark-dimmed-RCH63F7F.css"/></head><body class="bg-background text-text-primary dark:bg-d-background dark:text-d-text-primary"><div class="flex min-h-screen flex-col"><header class="sticky top-0 z-[1] mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between bg-background p-8 font-sans font-bold uppercase text-text-primary backdrop-blur-[100px] dark:border-gray-800 dark:bg-d-background dark:text-d-text-primary"><a class="inline-block text-lg" href="/">I WANT TO BELIEVE</a><nav class="flex flex-[1] items-center justify-end overflow-hidden"><div class="hidden justify-end md:flex"><a class="navlink" href="/">Home</a><a aria-current="page" class="selected navlink" href="/blog">Blog</a><a class="navlink" href="/project">Project</a><a class="navlink" href="https://career.programmers.co.kr/pr/urdlove_160" target="_blank">Resume</a></div><div class="flex w-[75px] justify-end md:hidden"><button><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu"><line x1="4" y1="12" x2="20" y2="12"></line><line x1="4" y1="6" x2="20" y2="6"></line><line x1="4" y1="18" x2="20" y2="18"></line></svg></button></div></nav></header><main class="relative mx-auto my-0 box-border flex w-full max-w-7xl flex-[1] flex-grow flex-col px-[2em] py-[1em]"><div><div class="mx-auto flex w-full max-w-[47rem]"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg> <a aria-current="page" class="back-button ml-2 font-sans active" href="/blog">Back</a></div><header class="mx-auto flex w-full max-w-[47rem] text-center text-primary"><h1 class="mb-10 mt-16 text-4xl font-bold leading-[1.3]">recursion</h1></header><div class="flex justify-center"><div class="prose w-screen px-[2em] py-[1em] dark:prose-invert md:prose-lg lg:prose-xl prose-headings:text-text-primary prose-a:no-underline prose-pre:p-0 dark:prose-headings:text-d-text-primary"><h3>시작</h3>
+<p>예전 자바의 정석책에 재귀호출에 관한 코드가 몇줄 있었다. 그 당시에는 그냥 신기하구나 하고 넘어갔는데...</p>
+<p>첫 회사에서는 그런 코드를 사용할 일이 없었지만 두번째 회사에서 Drag &amp; Drop 메뉴를 구현하려고 할때 재귀호출을 사용해야했다.</p>
+<p>지금도 뇌정지가 오는건 마찬가지지만 그때는 몇일간 고통스러웠던 기억이 난다.</p>
+<hr/>
+<h3>데이터</h3>
+<p>보통 트리구조의 데이터를 다룰때 자주 사용하는것 같다.</p>
+<p>parent -&gt; child로 되어있는 전형적인 트리구조이다.</p>
+<pre><code class="hljs language-javascript"><span class="hljs-keyword">const</span> data = [
+  {
+    <span class="hljs-attr">name</span>: <span class="hljs-string">&#x27;감기&#x27;</span>,
+    <span class="hljs-attr">depth</span>: <span class="hljs-number">1</span>,
+    <span class="hljs-attr">child</span>: [
+      {
+        <span class="hljs-attr">name</span>: <span class="hljs-string">&#x27;코감기&#x27;</span>,
+        <span class="hljs-attr">depth</span>: <span class="hljs-number">2</span>,
+        <span class="hljs-attr">child</span>: [
+          {
+            <span class="hljs-attr">name</span>: <span class="hljs-string">&#x27;코막힘&#x27;</span>,
+            <span class="hljs-attr">depth</span>: <span class="hljs-number">3</span>,
+            <span class="hljs-attr">child</span>: [],
+          },
+          {
+            <span class="hljs-attr">name</span>: <span class="hljs-string">&#x27;콧물&#x27;</span>,
+            <span class="hljs-attr">depth</span>: <span class="hljs-number">3</span>,
+            <span class="hljs-attr">child</span>: [],
+          },
+        ],
+      },
+      {
+        <span class="hljs-attr">name</span>: <span class="hljs-string">&#x27;뇌감기&#x27;</span>,
+        <span class="hljs-attr">depth</span>: <span class="hljs-number">2</span>,
+        <span class="hljs-attr">child</span>: [],
+      },
+      {
+        <span class="hljs-attr">name</span>: <span class="hljs-string">&#x27;목감기&#x27;</span>,
+        <span class="hljs-attr">depth</span>: <span class="hljs-number">2</span>,
+        <span class="hljs-attr">child</span>: [
+          {
+            <span class="hljs-attr">name</span>: <span class="hljs-string">&#x27;목아픔&#x27;</span>,
+            <span class="hljs-attr">depth</span>: <span class="hljs-number">3</span>,
+            <span class="hljs-attr">child</span>: [],
+          },
+        ],
+      },
+      {
+        <span class="hljs-attr">name</span>: <span class="hljs-string">&#x27;눈감기&#x27;</span>,
+        <span class="hljs-attr">depth</span>: <span class="hljs-number">2</span>,
+        <span class="hljs-attr">child</span>: [
+          {
+            <span class="hljs-attr">name</span>: <span class="hljs-string">&#x27;눈아퍼&#x27;</span>,
+            <span class="hljs-attr">depth</span>: <span class="hljs-number">3</span>,
+            <span class="hljs-attr">child</span>: [],
+          },
+        ],
+      },
+    ],
+  },
+  {
+    <span class="hljs-attr">name</span>: <span class="hljs-string">&#x27;소화불량&#x27;</span>,
+    <span class="hljs-attr">depth</span>: <span class="hljs-number">1</span>,
+    <span class="hljs-attr">child</span>: [],
+  },
+  {
+    <span class="hljs-attr">name</span>: <span class="hljs-string">&#x27;두통&#x27;</span>,
+    <span class="hljs-attr">depth</span>: <span class="hljs-number">1</span>,
+    <span class="hljs-attr">child</span>: [
+      {
+        <span class="hljs-attr">name</span>: <span class="hljs-string">&#x27;편두통&#x27;</span>,
+        <span class="hljs-attr">depth</span>: <span class="hljs-number">2</span>,
+        <span class="hljs-attr">child</span>: [],
+      },
+      {
+        <span class="hljs-attr">name</span>: <span class="hljs-string">&#x27;뇌두통&#x27;</span>,
+        <span class="hljs-attr">depth</span>: <span class="hljs-number">2</span>,
+        <span class="hljs-attr">child</span>: [],
+      },
+    ],
+  },
+  {
+    <span class="hljs-attr">name</span>: <span class="hljs-string">&#x27;기타&#x27;</span>,
+    <span class="hljs-attr">depth</span>: <span class="hljs-number">1</span>,
+    <span class="hljs-attr">child</span>: [],
+  },
+];
+</code></pre>
+<blockquote>
+<p>처음엔 <code>depth</code>도 없었지만 직관적으로 보기위해 그냥 넣어봤다</p>
+</blockquote>
+<hr/>
+<h3>FLAT</h3>
+<p>깊이가 있는 트리구조에서 1차원 배열로 만들어보자. 결국엔 새로운 javascript api인 <code>Array.flat()</code>과 유사하다.</p>
+<p><code>reduce</code>를 사용해서 구현하려 했는데 뭔가 잘 되지 않아서 나중에 추가 예정.</p>
+<pre><code class="hljs language-javascript"><span class="hljs-keyword">function</span> <span class="hljs-title function_">flattenDeep</span>(<span class="hljs-params">arr</span>) {
+  <span class="hljs-keyword">const</span> result = [];
+
+  <span class="hljs-keyword">function</span> <span class="hljs-title function_">recursion</span>(<span class="hljs-params">arr</span>) {
+    arr.<span class="hljs-title function_">forEach</span>(<span class="hljs-function">(<span class="hljs-params">value</span>) =&gt;</span> {
+      result.<span class="hljs-title function_">push</span>({ ...value, <span class="hljs-attr">child</span>: [] });
+      <span class="hljs-keyword">if</span> (value.<span class="hljs-property">child</span>.<span class="hljs-property">length</span> !== <span class="hljs-number">0</span>) {
+        <span class="hljs-title function_">recursion</span>(value.<span class="hljs-property">child</span>);
+      }
+    });
+  }
+
+  <span class="hljs-title function_">recursion</span>(arr);
+
+  <span class="hljs-keyword">return</span> result;
+}
+</code></pre>
+<hr/>
+<h3>FLAT#2</h3>
+<p>이건 예전에 면접에서 봤던 문제. 해당 배열을 오브젝트 제외하고 1차 배열로 만든다.</p>
+<pre><code class="hljs language-javascript"><span class="hljs-keyword">const</span> data = [<span class="hljs-number">1</span>, <span class="hljs-string">&#x27;hi&#x27;</span>, <span class="hljs-literal">undefined</span>, <span class="hljs-title class_">NaN</span>, [<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, [<span class="hljs-title class_">NaN</span>, <span class="hljs-string">&#x27;hi&#x27;</span>], [<span class="hljs-number">3</span>]], { <span class="hljs-attr">a</span>: <span class="hljs-string">&#x27;hello&#x27;</span> }];
+<span class="hljs-keyword">const</span> <span class="hljs-title function_">flatten</span> = (<span class="hljs-params">arr</span>) =&gt; {
+  <span class="hljs-keyword">return</span> arr.<span class="hljs-title function_">reduce</span>(<span class="hljs-function">(<span class="hljs-params">acc, value</span>) =&gt;</span> {
+    <span class="hljs-keyword">if</span> (<span class="hljs-title class_">Array</span>.<span class="hljs-title function_">isArray</span>(value)) {
+      acc.<span class="hljs-title function_">push</span>(...<span class="hljs-title function_">flatten</span>(value));
+    } <span class="hljs-keyword">else</span> {
+      acc.<span class="hljs-title function_">push</span>(value);
+    }
+
+    <span class="hljs-keyword">return</span> acc;
+  }, []);
+};
+
+<span class="hljs-title function_">flatten</span>(data);
+</code></pre>
+<hr/>
+<h3>다시 트리구조로?</h3>
+<p>1차원 배열로 만든 뒤 몇가지 작업을하고 다시 트리구조로 바꾸려 했지만 문제가 생겼다.</p>
+<p>몇번의 삽질끝에 이걸 다시 원복시키려면 <code>parentId</code>와 <code>id</code>가 필요하다는걸 깨달았다.</p>
+<pre><code class="hljs language-javascript"><span class="hljs-keyword">function</span> <span class="hljs-title function_">addId</span>(<span class="hljs-params">array</span>) {
+  <span class="hljs-keyword">let</span> id = <span class="hljs-number">0</span>;
+
+  <span class="hljs-keyword">function</span> <span class="hljs-title function_">recursion</span>(<span class="hljs-params">array, parentId</span>) {
+    array.<span class="hljs-title function_">forEach</span>(<span class="hljs-function">(<span class="hljs-params">v, i</span>) =&gt;</span> {
+      v.<span class="hljs-property">id</span> = id++;
+      v.<span class="hljs-property">parentId</span> = parentId;
+      <span class="hljs-keyword">if</span> (v.<span class="hljs-property">child</span>.<span class="hljs-property">length</span> &gt; <span class="hljs-number">0</span>) {
+        <span class="hljs-title function_">recursion</span>(v.<span class="hljs-property">child</span>, id - <span class="hljs-number">1</span>);
+      }
+    });
+  }
+
+  <span class="hljs-title function_">recursion</span>(array, <span class="hljs-literal">null</span>);
+
+  <span class="hljs-keyword">return</span> array;
+}
+</code></pre>
+<p>처음 1차배열로 만들기 전에 해당값을 집어넣는 배열을 새로 만든고, 이후 <code>parentId</code>와 <code>id</code>를 참고해서 다시 트리구조로 만든다.</p>
+<pre><code class="hljs language-javascript"><span class="hljs-keyword">function</span> <span class="hljs-title function_">makeTree</span>(<span class="hljs-params">arr, parentId</span>) {
+  <span class="hljs-keyword">let</span> result = [];
+
+  arr.<span class="hljs-title function_">forEach</span>(<span class="hljs-function">(<span class="hljs-params">value</span>) =&gt;</span> {
+    <span class="hljs-keyword">if</span> (value.<span class="hljs-property">parentId</span> === parentId) {
+      <span class="hljs-keyword">const</span> child = <span class="hljs-title function_">makeTree</span>(arr, value.<span class="hljs-property">id</span>);
+      <span class="hljs-keyword">if</span> (child.<span class="hljs-property">length</span>) {
+        value.<span class="hljs-property">child</span> = child;
+      }
+
+      result.<span class="hljs-title function_">push</span>(value);
+    }
+  });
+
+  <span class="hljs-keyword">return</span> result;
+}
+
+<span class="hljs-comment">// 처음 parentId가 null이다.</span>
+<span class="hljs-title function_">makeTree</span>(arr, <span class="hljs-literal">null</span>);
+</code></pre>
+<hr/>
+<h3>팩토리얼</h3>
+<p>재귀호출에 대해서 검색하면 많이 나오는 팩토리얼이다. 아마 팩토리얼이랑 피보나치가 젤 많이 나오는듯..</p>
+<blockquote>
+<p>피보나치 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, ... =&gt; F(n) = F(n-1) + F(n-2)</p>
+</blockquote>
+<pre><code class="hljs language-javascript"><span class="hljs-keyword">const</span> <span class="hljs-title function_">factorial</span> = (<span class="hljs-params">number</span>) =&gt; {
+  <span class="hljs-keyword">if</span> (number &lt; <span class="hljs-number">1</span>) {
+    <span class="hljs-keyword">return</span> <span class="hljs-number">1</span>;
+  }
+
+  <span class="hljs-keyword">return</span> number * <span class="hljs-title function_">factorial</span>(number - <span class="hljs-number">1</span>);
+};
+
+<span class="hljs-keyword">function</span> <span class="hljs-title function_">fibonacci</span>(<span class="hljs-params">n</span>) {
+  <span class="hljs-keyword">let</span> arr = [<span class="hljs-number">0</span>, <span class="hljs-number">1</span>];
+  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">2</span>; i &lt; n + <span class="hljs-number">1</span>; i++) {
+    arr.<span class="hljs-title function_">push</span>(arr[i - <span class="hljs-number">2</span>] + arr[i - <span class="hljs-number">1</span>]);
+  }
+
+  <span class="hljs-keyword">return</span> arr[n];
+}
+</code></pre>
+<hr/>
+<h3>메모이즈 패턴</h3>
+<p>이건 재귀호출과는 관계없는데 팩토리얼 공부할때 많이 나오는거니까 한번 해봄. 팩토리얼을 호출할때마다 하위값을 다시 계산하는데 하위값을 캐시해두고 꺼내서 쓴다. 클로져다.</p>
+<pre><code class="hljs language-javascript"><span class="hljs-keyword">const</span> <span class="hljs-title function_">memoize</span> = (<span class="hljs-params">fn</span>) =&gt; {
+  <span class="hljs-keyword">let</span> cache = {};
+
+  <span class="hljs-keyword">return</span> <span class="hljs-function">(<span class="hljs-params">number</span>) =&gt;</span> {
+    <span class="hljs-keyword">if</span> (number <span class="hljs-keyword">in</span> cache) {
+      <span class="hljs-keyword">return</span> cache[number];
+    } <span class="hljs-keyword">else</span> {
+      cache[number] = <span class="hljs-title function_">fn</span>(number);
+      <span class="hljs-keyword">return</span> <span class="hljs-title function_">fn</span>(number);
+    }
+  };
+};
+
+<span class="hljs-keyword">const</span> memoizeFactorial = <span class="hljs-title function_">memoize</span>(factorial);
+<span class="hljs-title function_">memoizeFactorial</span>(<span class="hljs-number">5</span>); <span class="hljs-comment">// 계산</span>
+<span class="hljs-title function_">memoizeFactorial</span>(<span class="hljs-number">5</span>); <span class="hljs-comment">// 캐시</span>
+<span class="hljs-comment">// { 4: 24, 5: 120, ... } 이렇게 저장되어있는걸 꺼내씀</span>
+</code></pre></div></div></div></main><footer class="mx-auto my-4 w-full max-w-7xl px-8 py-4 text-center text-[0.8rem] text-text-secondary dark:text-d-text-secondary"><span>Powered by<!-- --> <a href="https://remix.run/" target="_blank" rel="noopener noreferrer">Remix</a>.</span></footer></div><script>((STORAGE_KEY, restoreKey) => {
+    if (!window.history.state || !window.history.state.key) {
+      let key = Math.random().toString(32).slice(2);
+      window.history.replaceState({
+        key
+      }, "");
+    }
+    try {
+      let positions = JSON.parse(sessionStorage.getItem(STORAGE_KEY) || "{}");
+      let storedY = positions[restoreKey || window.history.state.key];
+      if (typeof storedY === "number") {
+        window.scrollTo(0, storedY);
+      }
+    } catch (error) {
+      console.error(error);
+      sessionStorage.removeItem(STORAGE_KEY);
+    }
+  })("positions", null)</script><link rel="modulepreload" href="/build/manifest-6C81B7CD.js"/><link rel="modulepreload" href="/build/entry.client-W37XRZTG.js"/><link rel="modulepreload" href="/build/_shared/chunk-XLQRNDYL.js"/><link rel="modulepreload" href="/build/_shared/chunk-J2B6VFGD.js"/><link rel="modulepreload" href="/build/_shared/chunk-EGLYY6PQ.js"/><link rel="modulepreload" href="/build/_shared/chunk-B4IYY2WK.js"/><link rel="modulepreload" href="/build/root-NDEPYIZP.js"/><link rel="modulepreload" href="/build/_shared/chunk-BIZO7NA5.js"/><link rel="modulepreload" href="/build/routes/_mdx-A5W4UHPY.js"/><link rel="modulepreload" href="/build/routes/_mdx.blog.javascript-recursion-DCTVXQZA.js"/><script>window.__remixContext = {"state":{"loaderData":{"routes/_mdx":{"slug":"javascript-recursion","title":"recursion","publishDate":"2019-04-08","description":"\b자바스크립트 재귀호출","pathName":"/blog/javascript-recursion"},"root":null,"routes/_mdx.blog.javascript-recursion":null},"actionData":null,"errors":null},"future":{"unstable_cssModules":false,"unstable_cssSideEffectImports":false,"unstable_dev":false,"unstable_postcss":false,"unstable_tailwind":true,"unstable_vanillaExtract":false,"v2_errorBoundary":false,"v2_meta":false,"v2_normalizeFormMethod":false,"v2_routeConvention":true}};</script><script type="module" async="">import "/build/manifest-6C81B7CD.js";
+import * as route0 from "/build/root-NDEPYIZP.js";
+import * as route1 from "/build/routes/_mdx-A5W4UHPY.js";
+import * as route2 from "/build/routes/_mdx.blog.javascript-recursion-DCTVXQZA.js";
+window.__remixRouteModules = {"root":route0,"routes/_mdx":route1,"routes/_mdx.blog.javascript-recursion":route2};
+
+import("/build/entry.client-W37XRZTG.js");</script></body></html>

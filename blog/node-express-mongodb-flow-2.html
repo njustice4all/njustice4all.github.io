@@ -1,0 +1,211 @@
+<!DOCTYPE html><html lang="en" class="dark"><head><meta charSet="utf-8"/><title>I WANT TO BELIEVE</title><meta name="viewport" content="width=device-width,initial-scale=1"/><link rel="stylesheet" href="/build/_assets/tailwind-4O66H3A3.css"/><link rel="stylesheet" href="/build/_assets/github-dark-dimmed-RCH63F7F.css"/></head><body class="bg-background text-text-primary dark:bg-d-background dark:text-d-text-primary"><div class="flex min-h-screen flex-col"><header class="sticky top-0 z-[1] mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between bg-background p-8 font-sans font-bold uppercase text-text-primary backdrop-blur-[100px] dark:border-gray-800 dark:bg-d-background dark:text-d-text-primary"><a class="inline-block text-lg" href="/">I WANT TO BELIEVE</a><nav class="flex flex-[1] items-center justify-end overflow-hidden"><div class="hidden justify-end md:flex"><a class="navlink" href="/">Home</a><a aria-current="page" class="selected navlink" href="/blog">Blog</a><a class="navlink" href="/project">Project</a><a class="navlink" href="https://career.programmers.co.kr/pr/urdlove_160" target="_blank">Resume</a></div><div class="flex w-[75px] justify-end md:hidden"><button><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu"><line x1="4" y1="12" x2="20" y2="12"></line><line x1="4" y1="6" x2="20" y2="6"></line><line x1="4" y1="18" x2="20" y2="18"></line></svg></button></div></nav></header><main class="relative mx-auto my-0 box-border flex w-full max-w-7xl flex-[1] flex-grow flex-col px-[2em] py-[1em]"><div><div class="mx-auto flex w-full max-w-[47rem]"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg> <a aria-current="page" class="back-button ml-2 font-sans active" href="/blog">Back</a></div><header class="mx-auto flex w-full max-w-[47rem] text-center text-primary"><h1 class="mb-10 mt-16 text-4xl font-bold leading-[1.3]">[NODE] NODE+EXPRESS+MONGODB 회원가입 FLOW #2</h1></header><div class="flex justify-center"><div class="prose w-screen px-[2em] py-[1em] dark:prose-invert md:prose-lg lg:prose-xl prose-headings:text-text-primary prose-a:no-underline prose-pre:p-0 dark:prose-headings:text-d-text-primary"><p>이전글에 이어서 모델도 만들어보고 라우팅도 해보고 잘 되나 확인해보자. 하는김에 이메일 인증도?</p>
+<p>회원가입과 로그인 둘다 post방식이고 엔드포인트는 <code>/user/register</code>, <code>/user/login</code>으로 한다. 앱구조는 편한대로하면 되지만 여기선 아래의 구조를 따른다. 어디선가 많이 보던 방식이다. <code>src</code>폴더에 <code>modules</code>폴더를 만들고 그 안에서 놀자</p>
+<p><img src="/assets/images/posts/190123/structure.png" alt="앱구조"/></p>
+<blockquote>
+<p>api통신은 각자 편한걸로 하면 된다. 몽고디비 기본 GUI인 compass도 설치하면 좋음. 코드 대부분 <code>import</code>는 삭제함</p>
+</blockquote>
+<hr/>
+<h3>모델</h3>
+<pre><code class="hljs language-javascript"><span class="hljs-keyword">const</span> <span class="hljs-title class_">User</span> = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Schema</span>(
+  {
+    <span class="hljs-attr">email</span>: {
+      <span class="hljs-attr">type</span>: <span class="hljs-title class_">String</span>,
+      <span class="hljs-attr">required</span>: [<span class="hljs-literal">true</span>, <span class="hljs-string">&#x27;Email is required!!&#x27;</span>],
+      <span class="hljs-attr">trim</span>: <span class="hljs-literal">true</span>,
+      <span class="hljs-attr">unique</span>: <span class="hljs-literal">true</span>,
+    },
+    <span class="hljs-attr">password</span>: {
+      <span class="hljs-attr">type</span>: <span class="hljs-title class_">String</span>,
+      <span class="hljs-attr">minlength</span>: [<span class="hljs-number">6</span>, <span class="hljs-string">&#x27;Password need to be longer&#x27;</span>],
+    },
+    <span class="hljs-attr">nickName</span>: {
+      <span class="hljs-attr">type</span>: <span class="hljs-title class_">String</span>,
+      <span class="hljs-attr">trim</span>: <span class="hljs-literal">true</span>,
+    },
+    <span class="hljs-attr">provider</span>: {
+      <span class="hljs-attr">type</span>: <span class="hljs-title class_">String</span>,
+      <span class="hljs-attr">default</span>: <span class="hljs-string">&#x27;local&#x27;</span>,
+    },
+    <span class="hljs-attr">admin</span>: {
+      <span class="hljs-attr">type</span>: <span class="hljs-title class_">Boolean</span>,
+      <span class="hljs-attr">default</span>: <span class="hljs-literal">false</span>,
+      <span class="hljs-attr">required</span>: <span class="hljs-literal">false</span>,
+    },
+    <span class="hljs-attr">isVerified</span>: {
+      <span class="hljs-attr">type</span>: <span class="hljs-title class_">Boolean</span>,
+      <span class="hljs-attr">default</span>: <span class="hljs-literal">false</span>,
+    },
+    <span class="hljs-attr">favorites</span>: {
+      <span class="hljs-attr">posts</span>: [
+        {
+          <span class="hljs-attr">type</span>: <span class="hljs-title class_">Schema</span>.<span class="hljs-property">Types</span>.<span class="hljs-property">ObjectId</span>,
+          <span class="hljs-attr">ref</span>: <span class="hljs-string">&#x27;Post&#x27;</span>,
+        },
+      ],
+    },
+  },
+  {
+    <span class="hljs-attr">timestamps</span>: <span class="hljs-literal">true</span>,
+  }
+);
+
+<span class="hljs-title class_">User</span>.<span class="hljs-title function_">pre</span>(<span class="hljs-string">&#x27;save&#x27;</span>, <span class="hljs-keyword">function</span> (<span class="hljs-params">next</span>) {
+  <span class="hljs-keyword">if</span> (<span class="hljs-variable language_">this</span>.<span class="hljs-title function_">isModified</span>(<span class="hljs-string">&#x27;password&#x27;</span>)) {
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">password</span> = <span class="hljs-title function_">hashSync</span>(<span class="hljs-variable language_">this</span>.<span class="hljs-property">password</span>);
+  }
+
+  <span class="hljs-keyword">return</span> <span class="hljs-title function_">next</span>();
+});
+
+<span class="hljs-title class_">User</span>.<span class="hljs-property">methods</span> = {
+  <span class="hljs-title function_">_compareUser</span>(<span class="hljs-params">password</span>) {
+    <span class="hljs-comment">/**
+     * <span class="hljs-doctag">FIXME:</span>
+     * github으로 가입한사람은 패스워드가 없기때문에 비교할수 없음
+     */</span>
+    <span class="hljs-keyword">if</span> (<span class="hljs-variable language_">this</span>.<span class="hljs-property">password</span> === <span class="hljs-literal">undefined</span>) {
+      <span class="hljs-keyword">return</span>;
+    }
+    <span class="hljs-keyword">return</span> <span class="hljs-title function_">compareSync</span>(password, <span class="hljs-variable language_">this</span>.<span class="hljs-property">password</span>);
+  },
+
+  <span class="hljs-title function_">_createToken</span>(<span class="hljs-params"></span>) {
+    <span class="hljs-keyword">return</span> jwt.<span class="hljs-title function_">sign</span>(
+      {
+        <span class="hljs-attr">_id</span>: <span class="hljs-variable language_">this</span>.<span class="hljs-property">_id</span>,
+      },
+      constants.<span class="hljs-property">JWT_SECRET</span>,
+      {
+        <span class="hljs-attr">expiresIn</span>: <span class="hljs-string">&#x27;30s&#x27;</span>,
+        <span class="hljs-attr">issuer</span>: <span class="hljs-string">&#x27;angelking47&#x27;</span>,
+      }
+    );
+  },
+
+  <span class="hljs-title function_">toAuthJSON</span>(<span class="hljs-params"></span>) {
+    <span class="hljs-keyword">return</span> {
+      <span class="hljs-attr">_id</span>: <span class="hljs-variable language_">this</span>.<span class="hljs-property">_id</span>,
+      <span class="hljs-attr">email</span>: <span class="hljs-variable language_">this</span>.<span class="hljs-property">email</span>,
+      <span class="hljs-attr">token</span>: <span class="hljs-string">`JWT <span class="hljs-subst">${<span class="hljs-variable language_">this</span>._createToken()}</span>`</span>,
+    };
+  },
+};
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> mongoose.<span class="hljs-title function_">model</span>(<span class="hljs-string">&#x27;User&#x27;</span>, <span class="hljs-title class_">User</span>);
+</code></pre>
+<p><code>jwt</code>, <code>bcrypt-nodejs</code>모듈도 어차피 나중에 다 쓴다. 피가되고 살이되니까 설치하자.</p>
+<p>적절히 유저모델을 정의하고 필요한 함수들도 만들어준다. 로그인을하면 response로 <code>toAuthJSON()</code>을 호출할꺼다. <code>compareUser</code>는 미들웨어로 <code>passport-local</code>를 사용해서 기본로그인할때 로그인시 받아온 비밀번호와 이메일로 찾은 유저의 비밀번호를 매칭해서 동일하면 <code>유저</code>를, 다르면 <code>false</code>를 리턴한다. <code>createToken</code>은 호출할때마나 jwon web token만들어줌. 테스트를 위해 만료는 30초로함.</p>
+<blockquote>
+<p><code>User.pre(&#x27;save&#x27;, callback)</code>은 모델 <strong>저장전</strong>에 발생하며 이메일로 찾은 유저는 <code>User.findOne({ email })</code>이다. provider는 외부인증로그인을 구현할때 필요</p>
+</blockquote>
+<hr/>
+<h3>컨트롤러</h3>
+<pre><code class="hljs language-javascript"><span class="hljs-keyword">export</span> <span class="hljs-keyword">const</span> <span class="hljs-title function_">register</span> = <span class="hljs-keyword">async</span> (<span class="hljs-params">req, res</span>) =&gt; {
+  <span class="hljs-keyword">try</span> {
+    <span class="hljs-keyword">const</span> { email } = req.<span class="hljs-property">body</span>;
+    <span class="hljs-keyword">const</span> duplicateEmail = <span class="hljs-keyword">await</span> <span class="hljs-title class_">User</span>.<span class="hljs-title function_">findOne</span>({ email });
+
+    <span class="hljs-keyword">if</span> (duplicateEmail) {
+      <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Error</span>(<span class="hljs-string">&#x27;user is already exist&#x27;</span>);
+    } <span class="hljs-keyword">else</span> {
+      <span class="hljs-keyword">const</span> user = <span class="hljs-keyword">await</span> <span class="hljs-title class_">User</span>.<span class="hljs-title function_">create</span>(req.<span class="hljs-property">body</span>);
+      <span class="hljs-keyword">const</span> token = <span class="hljs-keyword">await</span> <span class="hljs-title class_">Token</span>.<span class="hljs-title function_">create</span>({
+        <span class="hljs-attr">_userId</span>: user.<span class="hljs-property">_id</span>,
+        <span class="hljs-attr">token</span>: crypto.<span class="hljs-title function_">randomBytes</span>(<span class="hljs-number">16</span>).<span class="hljs-title function_">toString</span>(<span class="hljs-string">&#x27;hex&#x27;</span>),
+      });
+
+      <span class="hljs-keyword">const</span> transporter = nodemailer.<span class="hljs-title function_">createTransport</span>({
+        <span class="hljs-attr">host</span>: <span class="hljs-string">&#x27;smtp.ethereal.email&#x27;</span>,
+        <span class="hljs-attr">port</span>: <span class="hljs-number">587</span>,
+        <span class="hljs-attr">auth</span>: {
+          <span class="hljs-attr">user</span>: <span class="hljs-string">&#x27;wvu44xkoolzo6loj@ethereal.email&#x27;</span>,
+          <span class="hljs-attr">pass</span>: <span class="hljs-string">&#x27;HY4fyMB2SGG8WyKrQc&#x27;</span>,
+        },
+      });
+
+      <span class="hljs-keyword">const</span> mailOptions = {
+        <span class="hljs-attr">from</span>: <span class="hljs-string">&#x27;no-reply@ethereal.email&#x27;</span>,
+        <span class="hljs-attr">to</span>: <span class="hljs-string">&#x27;urdlove@gmail.com&#x27;</span>,
+        <span class="hljs-attr">subject</span>: <span class="hljs-string">&#x27;행운의편지...&#x27;</span>,
+        <span class="hljs-attr">text</span>: <span class="hljs-string">`http://<span class="hljs-subst">${req.headers.host}</span>/users/confirm/<span class="hljs-subst">${token.token}</span>\n\nEmail: <span class="hljs-subst">${user.email}</span>`</span>,
+      };
+
+      transporter.<span class="hljs-title function_">sendMail</span>(mailOptions, <span class="hljs-function">(<span class="hljs-params">err, info</span>) =&gt;</span> {
+        <span class="hljs-keyword">if</span> (err) {
+          <span class="hljs-keyword">return</span> res.<span class="hljs-title function_">status</span>(<span class="hljs-number">500</span>).<span class="hljs-title function_">send</span>({ <span class="hljs-attr">msg</span>: err.<span class="hljs-property">message</span> });
+        }
+
+        <span class="hljs-keyword">return</span> res.<span class="hljs-title function_">status</span>(<span class="hljs-number">200</span>).<span class="hljs-title function_">json</span>(user.<span class="hljs-title function_">toAuthJSON</span>());
+      });
+    }
+  } <span class="hljs-keyword">catch</span> (error) {
+    <span class="hljs-keyword">return</span> res.<span class="hljs-title function_">status</span>(<span class="hljs-number">400</span>).<span class="hljs-title function_">json</span>(error.<span class="hljs-property">message</span>);
+  }
+};
+</code></pre>
+<p>코드에 회원가입시 인증메일까지 보내는 절차까지 있는데 해당하는부분은 무시하고 진행해도 회원가입은 된다. TMI로 토큰만들때 사용하는 <code>crypto</code>모듈은 현재 노드버전에 내장되어있다.</p>
+<ol>
+<li>회원가입요청하면 토큰모델을 바탕으로 토큰을 만들고(만료시간뒤에 데이터가 사라짐)</li>
+<li>해당토큰을 메일로 쏴준다.</li>
+<li>받은메일로 <code>/users/confirm/:token</code>에 접근</li>
+<li>params의 token과 DB의 토큰을 비교해서 맞으면 유저의 isVerified를 true로 바꿔줌(토큰모델에 user._id가 있음)</li>
+</ol>
+<hr/>
+<h3>라우팅</h3>
+<pre><code class="hljs language-javascript"><span class="hljs-keyword">import</span> { <span class="hljs-title class_">Router</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;express&#x27;</span>;
+
+<span class="hljs-keyword">import</span> { authLocal } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;../../middlewares/auth&#x27;</span>;
+<span class="hljs-keyword">import</span> * <span class="hljs-keyword">as</span> userController <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;./user.controllers&#x27;</span>;
+
+<span class="hljs-keyword">const</span> routes = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Router</span>();
+
+routes.<span class="hljs-title function_">post</span>(<span class="hljs-string">&#x27;/register&#x27;</span>, userController.<span class="hljs-property">register</span>);
+
+routes.<span class="hljs-title function_">post</span>(<span class="hljs-string">&#x27;/login&#x27;</span>, authLocal, userController.<span class="hljs-property">login</span>);
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> routes;
+</code></pre>
+<p>가입하는 엔드포인트만 보면 express의 Router를 가져와서 post방식으로 <code>/register</code>에 접근하면 해당컨트롤러를 실행하게된다. 파라메터는 미들웨어를 포함해서 여러개일수가 있다.</p>
+<p>이제 이전에 만들어놓은 앱실행파일인 <code>index.js</code>에 <code>appRouter(app)</code>를 작성하고 라우팅 미들웨어를 만들면 된다.</p>
+<pre><code class="hljs language-javascript"><span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> (app) =&gt; {
+  app.<span class="hljs-title function_">use</span>(<span class="hljs-string">&#x27;/crawling&#x27;</span>, crawlingRoutes);
+  app.<span class="hljs-title function_">use</span>(<span class="hljs-string">&#x27;/redis&#x27;</span>, redisRoutes);
+  app.<span class="hljs-title function_">use</span>(<span class="hljs-string">&#x27;/users&#x27;</span>, userRoutes);
+  app.<span class="hljs-title function_">use</span>(<span class="hljs-string">&#x27;/auth&#x27;</span>, githubRoutes);
+  app.<span class="hljs-title function_">use</span>(<span class="hljs-string">&#x27;/graphql&#x27;</span>, graphqlMiddleware);
+};
+</code></pre>
+<p>여러개가 있는데 <code>/users</code>로 접근하는건 <code>userRoutes</code>로 보내고 결국엔 <code>/users/register</code>형식이 된다.</p>
+<hr/>
+<h3>실행과 결과</h3>
+<p>적당히 만들었으니 포스트맨으로 가입요청을 하고 response를 확인하고, mongoDB compass로 db에 잘 저장이 되었는지 확인하자.</p>
+<p><img src="/assets/images/posts/190123/result1.png" alt="result1"/></p>
+<p><img src="/assets/images/posts/190123/result2.png" alt="result2"/></p>
+<p>JWT도 잘 담아서 보내고 비밀번호도 hash해서 저장이 잘 됐다.</p>
+<hr/>
+<h3>마무리</h3>
+<p>노드실행환경은 8.12.0이고 다른버전들 설치하려면 <code>nvm</code>설치해서 하면된다. 이메일 인증은 <a href="https://nodemailer.com/about/">Nodemailer</a>가 getting started에서 사용하는 <a href="https://ethereal.email/">ethereal</a>으로 함</p>
+<p>회원가입을 했으니 다음은 로그인을 해보자...</p></div></div></div></main><footer class="mx-auto my-4 w-full max-w-7xl px-8 py-4 text-center text-[0.8rem] text-text-secondary dark:text-d-text-secondary"><span>Powered by<!-- --> <a href="https://remix.run/" target="_blank" rel="noopener noreferrer">Remix</a>.</span></footer></div><script>((STORAGE_KEY, restoreKey) => {
+    if (!window.history.state || !window.history.state.key) {
+      let key = Math.random().toString(32).slice(2);
+      window.history.replaceState({
+        key
+      }, "");
+    }
+    try {
+      let positions = JSON.parse(sessionStorage.getItem(STORAGE_KEY) || "{}");
+      let storedY = positions[restoreKey || window.history.state.key];
+      if (typeof storedY === "number") {
+        window.scrollTo(0, storedY);
+      }
+    } catch (error) {
+      console.error(error);
+      sessionStorage.removeItem(STORAGE_KEY);
+    }
+  })("positions", null)</script><link rel="modulepreload" href="/build/manifest-6C81B7CD.js"/><link rel="modulepreload" href="/build/entry.client-W37XRZTG.js"/><link rel="modulepreload" href="/build/_shared/chunk-XLQRNDYL.js"/><link rel="modulepreload" href="/build/_shared/chunk-J2B6VFGD.js"/><link rel="modulepreload" href="/build/_shared/chunk-EGLYY6PQ.js"/><link rel="modulepreload" href="/build/_shared/chunk-B4IYY2WK.js"/><link rel="modulepreload" href="/build/root-NDEPYIZP.js"/><link rel="modulepreload" href="/build/_shared/chunk-BIZO7NA5.js"/><link rel="modulepreload" href="/build/routes/_mdx-A5W4UHPY.js"/><link rel="modulepreload" href="/build/routes/_mdx.blog.node-express-mongodb-flow-2-AKOYRNYZ.js"/><script>window.__remixContext = {"state":{"loaderData":{"routes/_mdx":{"slug":"node-express-mongodb-flow-2","title":"[NODE] NODE+EXPRESS+MONGODB 회원가입 FLOW #2","publishDate":"2019-01-23","description":"많이쓰는 node express mongodb 조합으로 회원가입과 github인증등을 구현. 첫번째로는 프로젝트의 구조등을 설정함.","pathName":"/blog/node-express-mongodb-flow-2"},"root":null,"routes/_mdx.blog.node-express-mongodb-flow-2":null},"actionData":null,"errors":null},"future":{"unstable_cssModules":false,"unstable_cssSideEffectImports":false,"unstable_dev":false,"unstable_postcss":false,"unstable_tailwind":true,"unstable_vanillaExtract":false,"v2_errorBoundary":false,"v2_meta":false,"v2_normalizeFormMethod":false,"v2_routeConvention":true}};</script><script type="module" async="">import "/build/manifest-6C81B7CD.js";
+import * as route0 from "/build/root-NDEPYIZP.js";
+import * as route1 from "/build/routes/_mdx-A5W4UHPY.js";
+import * as route2 from "/build/routes/_mdx.blog.node-express-mongodb-flow-2-AKOYRNYZ.js";
+window.__remixRouteModules = {"root":route0,"routes/_mdx":route1,"routes/_mdx.blog.node-express-mongodb-flow-2":route2};
+
+import("/build/entry.client-W37XRZTG.js");</script></body></html>
