@@ -12,9 +12,9 @@ const NavLinks = () => {
       <NavLink to="/" className={activeStyleCallback}>
         Home
       </NavLink>
-      <NavLink to="/blog" className={activeStyleCallback}>
+      {/* <NavLink to="/blog" className={activeStyleCallback}>
         Blog
-      </NavLink>
+      </NavLink> */}
       <NavLink to="/project" className={activeStyleCallback}>
         Project
       </NavLink>
