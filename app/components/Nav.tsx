@@ -19,7 +19,7 @@ const NavLinks = () => {
         Project
       </NavLink>
       <NavLink
-        to="https://career.programmers.co.kr/pr/urdlove_160"
+        to="https://my.surfit.io/w/1904750161"
         className={activeStyleCallback}
         target="_blank"
       >
